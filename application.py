@@ -117,9 +117,23 @@ def insert_data_into_db(payload):
     NOTE: Our autograder will automatically insert data into the DB automatically keeping in mind the explained SCHEMA, you dont have to insert your own data.
     """
     create_db_table()
-    # TODO: Implement the database call    
-    
-    raise NotImplementedError("Database insert function not implemented.")
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = """
+                INSERT INTO events (title, description, image_url, date, location)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(sql, (
+                payload.get('title'),
+                payload.get('description'),
+                payload.get('image_url'),
+                payload.get('date'),
+                payload.get('location')
+            ))
+        connection.commit()
+    finally:
+        connection.close()
 
 #Database Function Stub
 def fetch_data_from_db():
@@ -127,9 +141,14 @@ def fetch_data_from_db():
     Stub for database communication.
     Implement this function to fetch your data from the database.
     """
-    # TODO: Implement the database call
-    
-    raise NotImplementedError("Database fetch function not implemented.")
+    connection = get_db_connection()
+    try:
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * FROM events ORDER BY date ASC")
+            rows = cursor.fetchall()
+            return rows
+    finally:
+        connection.close()
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
